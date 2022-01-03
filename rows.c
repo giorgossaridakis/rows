@@ -15,7 +15,7 @@ void showusage();
 int main(int argc, char *argv[])
 {
   int opt, i2, fd=STDIN_FILENO;
-  long int i, i1=1, chars, rows;
+  long int i, i1, chars, rows;
   unsigned int waitforkey, repeatrows, more;
   char c;
   size_t nread;
@@ -27,7 +27,8 @@ int main(int argc, char *argv[])
   // read terminal windows size
   ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
   
-   i=rows=chars=waitforkey=repeatrows=more=0;
+   rows=chars=waitforkey=repeatrows=more=0;
+   i=-1; i1=1;
    // parse command line
    while ((opt = getopt(argc, argv, ":kpmb:r:")) != -1) {
     switch (opt) {
