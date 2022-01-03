@@ -14,7 +14,7 @@ void showusage();
 
 int main(int argc, char *argv[])
 {
-  int opt;
+  int opt, i2, fd=STDIN_FILENO;
   long int i, i1=1, chars, rows;
   unsigned int waitforkey, repeatrows, more;
   char c;
@@ -60,9 +60,14 @@ int main(int argc, char *argv[])
    }
    if (waitforkey && rows)
     repeatrows=1;
-  
+
+   if (argc==optind) // no file given
+    ++argc;
+   for (i2=optind; i2<argc; i2++) {
+    if ((fd=open(argv[i2], O_RDONLY))==-1)
+     fd=STDIN_FILENO;
     // read stdin, loop until EOF
-    while ((nread=read(STDIN_FILENO, &c, 1))) {
+    while ((nread=read(fd, &c, 1))) {
      if (chars && (c=='\n' || c=='\r' || c=='\t'))
       continue;
      ++i;
@@ -84,6 +89,7 @@ int main(int argc, char *argv[])
      }
      write(STDOUT_FILENO, &c, 1);
     }
+   }
     
  return 0;
 }
@@ -102,7 +108,7 @@ int getch(int fd)
 // show usage
 void showusage()
 {
-  printf("Usage:\n rows [options]\n\nA bytes per row CRT viewer\n\nOptions:\n");
+  printf("Usage:\n rows [options] file1 file2 ..\n\nA bytes per row CRT viewer\n\nOptions:\n");
   printf(" -m\t\tmore like output, fill terminal height or with selected\n -p\t\trepeat rows sequence\n -b<number>\tbytes per row, default as read\n -r<number>\trows, default one\n -k<number>\twait for key on each row\n     --help\tdisplay this help\n\nDistributed under the GNU licence\n");
   exit (-1);
 }
