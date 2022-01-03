@@ -14,8 +14,8 @@ void showusage();
 
 int main(int argc, char *argv[])
 {
-  int opt, i2, fd=STDIN_FILENO;
-  long int i, i1, chars, rows;
+  int opt, i2, fd, chars, rows;
+  long int i, i1;
   unsigned int waitforkey, repeatrows, more;
   char c;
   size_t nread;
@@ -27,16 +27,12 @@ int main(int argc, char *argv[])
   // read terminal windows size
   ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
   
-   rows=chars=waitforkey=repeatrows=more=0;
-   i=-1; i1=1;
+   rows=chars=waitforkey=repeatrows=more=0; i=-1; i1=1;
    // parse command line
-   while ((opt = getopt(argc, argv, ":kpmb:r:")) != -1) {
+   while ((opt = getopt(argc, argv, ":kmb:r:")) != -1) {
     switch (opt) {
      case 'k':
       waitforkey=1;
-     break;
-     case 'p':
-      repeatrows=1;
      break;
      case 'm':
       more=1;
@@ -56,11 +52,15 @@ int main(int argc, char *argv[])
    if (more) {
     waitforkey=1;
     repeatrows=1;
-    if (!rows) // assume terminal height
+    if (rows == 0) // assume terminal height
      rows=w.ws_row;
    }
-   if (waitforkey && rows)
+   // pause key, repeat rows
+   if (waitforkey) {
     repeatrows=1;
+    if (rows == 0)
+     rows=1;
+   }
 
    if (argc==optind) // no file given
     ++argc;
@@ -79,9 +79,6 @@ int main(int argc, char *argv[])
         if ((opt=getch(STDERR_FILENO))=='q' || opt==27)
          break;
       }
-      if ((waitforkey && !repeatrows))
-       if ((opt=getch(STDERR_FILENO))=='q' || opt==27)
-        break;
       if (i1==rows && !repeatrows)
        break;
       if (c!='\n' && c!='\r')
@@ -110,6 +107,6 @@ int getch(int fd)
 void showusage()
 {
   printf("Usage:\n rows [options] file1 file2 ..\n\nA bytes per row CRT viewer\n\nOptions:\n");
-  printf(" -m\t\tmore like output, fill terminal height or with selected\n -p\t\trepeat rows sequence\n -b<number>\tbytes per row, default as read\n -r<number>\trows, default one\n -k<number>\twait for key on each row\n     --help\tdisplay this help\n\nDistributed under the GNU licence\n");
+  printf(" -m\t\tmore like output, fill terminal height or with selected\n -k\t\twait for key on each row sequence, repeat\n -b<number>\tbytes per row, default as read\n -r<number>\trows, default all\n     --help\tdisplay this help\n\nDistributed under the GNU Public licence.\n");
   exit (-1);
 }
