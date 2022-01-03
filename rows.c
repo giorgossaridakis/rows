@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
   int opt, i2, fd, chars, rows;
   long int i, i1;
-  unsigned int waitforkey, repeatrows, more;
+  unsigned int waitforkey, more;
   char c;
   size_t nread;
   
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   // read terminal windows size
   ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
   
-   rows=chars=waitforkey=repeatrows=more=0; i=-1; i1=1;
+   rows=chars=waitforkey=more=0; i=-1; i1=1;
    // parse command line
    while ((opt = getopt(argc, argv, ":kmb:r:")) != -1) {
     switch (opt) {
@@ -51,16 +51,13 @@ int main(int argc, char *argv[])
    // more like settings
    if (more) {
     waitforkey=1;
-    repeatrows=1;
     if (rows == 0) // assume terminal height
      rows=w.ws_row;
    }
-   // pause key, repeat rows
-   if (waitforkey) {
-    repeatrows=1;
+   // pause key, on each row
+   if (waitforkey)
     if (rows == 0)
      rows=1;
-   }
 
    if (argc==optind) // no file given
     ++argc;
@@ -73,13 +70,12 @@ int main(int argc, char *argv[])
       continue;
      ++i;
      if (i==chars || c=='\n' || c=='\r') {
-      if (i1==rows && repeatrows) {
+      if (i1==rows && waitforkey) {
        i1=0;
-       if (waitforkey)
-        if ((opt=getch(STDERR_FILENO))=='q' || opt==27)
-         break;
+       if ((opt=getch(STDERR_FILENO))=='q' || opt==27)
+        break;
       }
-      if (i1==rows && !repeatrows)
+      if (i1==rows && !waitforkey)
        break;
       if (c!='\n' && c!='\r')
        write(STDOUT_FILENO, "\n", 1);
