@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
     if (!rows) // assume terminal height
      rows=w.ws_row;
    }
+   if (waitforkey && rows)
+    repeatrows=1;
   
     // read stdin, loop until EOF
     while ((nread=read(STDIN_FILENO, &c, 1))) {
