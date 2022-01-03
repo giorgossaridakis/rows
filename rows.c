@@ -1,4 +1,4 @@
-// rows, output stdin for number of chars in a row
+// rows, output stdin for number of bytes in a row
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -14,7 +14,7 @@ void showusage();
 
 int main(int argc, char *argv[])
 {
-  int opt, i2, fd, chars, rows;
+  int opt, i2, fd, bytes, rows;
   long int i, i1;
   unsigned int waitforkey, more;
   char c;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   // read terminal windows size
   ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
   
-   rows=chars=waitforkey=more=0; i=-1; i1=1;
+   rows=bytes=waitforkey=more=0; i1=1;
    // parse command line
    while ((opt = getopt(argc, argv, ":kmb:r:")) != -1) {
     switch (opt) {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
       more=1;
      break;
      case 'b':
-      chars=atoi(optarg);
+      bytes=atoi(optarg);
      break;
      case 'r':
       rows=atoi(optarg);
@@ -61,15 +61,17 @@ int main(int argc, char *argv[])
 
    if (argc==optind) // no file given
     ++argc;
-   for (i2=optind; i2<argc; i2++) {
+   for (i=-1, i2=optind; i2<argc; i2++) {
     if ((fd=open(argv[i2], O_RDONLY))==-1)
      fd=STDIN_FILENO;
+    if (bytes == 0 && waitforkey) // advance one byte read
+     i=0;
     // read stdin, loop until EOF
     while ((nread=read(fd, &c, 1))) {
-     if (chars && (c=='\n' || c=='\r' || c=='\t'))
+     if (bytes && (c=='\n' || c=='\r' || c=='\t'))
       continue;
      ++i;
-     if (i==chars || c=='\n' || c=='\r') {
+     if (i==bytes || c=='\n' || c=='\r') {
       if (i1==rows && waitforkey) {
        i1=0;
        if ((opt=getch(STDERR_FILENO))=='q' || opt==27)
